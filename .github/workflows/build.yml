@@ -39,6 +39,17 @@ jobs:
           no-cache: true
           tags: ${{ env.IMAGE }}:inspect
 
+      - name: Debug version discovery
+        run: |
+          echo "=== ENV vars with VERSION ==="
+          docker run --rm --entrypoint sh ${{ env.IMAGE }}:inspect -c 'env' 2>/dev/null | grep -i version || echo "none"
+          echo "=== /etc/*version* /etc/*release* ==="
+          docker run --rm --entrypoint sh ${{ env.IMAGE }}:inspect -c 'cat /etc/dms-version 2>/dev/null; cat /etc/docker-mailserver-version 2>/dev/null; ls /etc/*version* /etc/*release* 2>/dev/null' || true
+          echo "=== Docker labels ==="
+          docker inspect ${{ env.IMAGE }}:inspect --format '{{json .Config.Labels}}' 2>/dev/null || true
+          echo "=== /VERSION or similar ==="
+          docker run --rm --entrypoint sh ${{ env.IMAGE }}:inspect -c 'find / -maxdepth 2 -name "*VERSION*" -o -name "*version*" 2>/dev/null | head -20' || true
+
       - name: Extract version info
         id: meta
         run: |
